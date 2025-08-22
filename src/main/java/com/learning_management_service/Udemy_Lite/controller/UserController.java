@@ -14,7 +14,7 @@ public class UserController {
     @Autowired
     UserService userService;
 
-    @PostMapping("/save")
+    @PostMapping("/register")
     public String saveUser(@RequestBody User userRequest){
         String response =userService.addUser(userRequest);
         return response;

@@ -40,7 +40,7 @@ public class UserService {
 
     public String deleteUserbyId(int id){
         userRepository.deleteById(id);
-        return "UserStudent with id: " +id+" got deleted successfully!";
+        return "User with id: " +id+" got deleted successfully!";
     }
 
 }
