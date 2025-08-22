@@ -5,6 +5,7 @@ import com.learning_management_service.Udemy_Lite.repository.CourseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -18,10 +19,10 @@ public class CourseService {
     }
 
     public Course getCourseById(int id){
-        Optional<Course> courseOptional= courseRepository.findById(id);
+        Optional<Course> courseOptional = courseRepository.findById(id);
         if(courseOptional.isPresent()){
             return courseOptional.get();
-        }else{
+        } else {
             return null;
         }
     }
@@ -38,7 +39,21 @@ public class CourseService {
     }
 
     public String deleteCourseById(int id){
-        courseRepository.deleteById(id);
-        return "Course with id: " +id+" got deleted successfully!";
+        // Check if course exists before deleting
+        if(courseRepository.existsById(id)){
+            courseRepository.deleteById(id);
+            return "Course with id: " + id + " got deleted successfully!";
+        } else {
+            return "Course with id: " + id + " not found, cannot delete";
+        }
+    }
+
+    public List<Course> getAllCourse(){
+        return courseRepository.findAll();
+    }
+
+    public String countCourse(){
+        long totalCount = courseRepository.count();
+        return "Total courses present are: " + totalCount;
     }
 }
