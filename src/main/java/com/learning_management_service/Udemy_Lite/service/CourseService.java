@@ -1,5 +1,7 @@
 package com.learning_management_service.Udemy_Lite.service;
 
+import com.learning_management_service.Udemy_Lite.dto.CourseRequestDTO;
+import com.learning_management_service.Udemy_Lite.dto.CourseResponseDTO;
 import com.learning_management_service.Udemy_Lite.model.Course;
 import com.learning_management_service.Udemy_Lite.repository.CourseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,53 +9,110 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CourseService {
+
     @Autowired
-    CourseRepository courseRepository;
+    private CourseRepository courseRepository;
 
-    public String addCourse(Course courseRequest){
-        courseRepository.save(courseRequest);
-        return "Course saved successfully !!";
+    // Convert Entity → ResponseDTO
+    private CourseResponseDTO mapToResponseDTO(Course course) {
+        CourseResponseDTO dto = new CourseResponseDTO();
+        dto.setId(course.getId());
+        dto.setTitle(course.getTitle());
+        dto.setDescription(course.getDescription());
+        dto.setPrice(course.getPrice());
+        dto.setCountry(course.getCountry());
+        dto.setCategory(course.getCategory());
+        dto.setAuthorId(course.getAuthorId());
+        dto.setRating(course.getRating());
+        dto.setViewCount(course.getViewCount());
+        return dto;
     }
 
-    public Course getCourseById(int id){
-        Optional<Course> courseOptional = courseRepository.findById(id);
-        if(courseOptional.isPresent()){
-            return courseOptional.get();
-        } else {
-            return null;
-        }
+    // Convert RequestDTO → Entity
+    private Course mapToEntity(CourseRequestDTO dto) {
+        Course course = new Course();
+        course.setTitle(dto.getTitle());
+        course.setDescription(dto.getDescription());
+        course.setPrice(dto.getPrice());
+        course.setCountry(dto.getCountry());
+        course.setCategory(dto.getCategory());
+        // Set default values for fields not in request
+        course.setRating(0.0); // New courses start with 0 rating
+        course.setViewCount(0L); // New courses start with 0 views
+        // Temporary placeholder until authentication is implemented
+        // Instead of hardcoded "default_author"
+        String authorId = "author_" + System.currentTimeMillis();
+// Or use proper author management
+        course.setAuthorId(authorId); // TODO: Replace with authenticated user ID
+        return course;
     }
 
-    public String updateCourse(int id, Course newCourseRequest){
-        Course existingCourse = getCourseById(id);
-        if(existingCourse != null){
-            newCourseRequest.setId(id); // Set the ID explicitly
-            courseRepository.save(newCourseRequest);
-            return "Course updated successfully";
-        } else {
-            return "Course not found, hence cannot be updated";
-        }
+    // Update existing entity with RequestDTO data
+    private void updateEntityFromDTO(Course course, CourseRequestDTO dto) {
+        course.setTitle(dto.getTitle());
+        course.setDescription(dto.getDescription());
+        course.setPrice(dto.getPrice());
+        course.setCountry(dto.getCountry());
+        course.setCategory(dto.getCategory());
+        // Note: Don't update rating, viewCount, or authorId during updates
+        // These should be managed separately
     }
 
-    public String deleteCourseById(int id){
-        // Check if course exists before deleting
-        if(courseRepository.existsById(id)){
-            courseRepository.deleteById(id);
-            return "Course with id: " + id + " got deleted successfully!";
-        } else {
-            return "Course with id: " + id + " not found, cannot delete";
-        }
+    // Create
+    public CourseResponseDTO createCourse(CourseRequestDTO courseRequestDTO) {
+        Course course = mapToEntity(courseRequestDTO);
+        // TODO: Set authorId from authenticated user context
+        // course.setAuthorId(getCurrentUserId());
+
+        Course savedCourse = courseRepository.save(course);
+        return mapToResponseDTO(savedCourse);
     }
 
-    public List<Course> getAllCourse(){
-        return courseRepository.findAll();
+    // Get all
+    public List<CourseResponseDTO> getAllCourses() {
+        return courseRepository.findAll()
+                .stream()
+                .map(this::mapToResponseDTO)
+                .collect(Collectors.toList());
     }
 
-    public String countCourse(){
-        long totalCount = courseRepository.count();
-        return "Total courses present are: " + totalCount;
+    // Get by ID
+    public Optional<CourseResponseDTO> getCourseById(Long id) {
+        return courseRepository.findById(id).map(this::mapToResponseDTO);
+    }
+
+    // Update
+    public CourseResponseDTO updateCourse(Long id, CourseRequestDTO courseRequestDTO) {
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Course not found with id " + id));
+
+        updateEntityFromDTO(course, courseRequestDTO);
+        Course updatedCourse = courseRepository.save(course);
+        return mapToResponseDTO(updatedCourse);
+    }
+
+    // Delete
+    public void deleteCourse(Long id) {
+        courseRepository.deleteById(id);
+    }
+
+    // Method to increment view count
+    public void incrementViewCount(Long courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found with id " + courseId));
+        course.setViewCount(course.getViewCount() + 1);
+        courseRepository.save(course);
+    }
+
+    // Method to update rating (would be called after rating calculation)
+    public void updateCourseRating(Long courseId, Double newRating) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found with id " + courseId));
+        course.setRating(newRating);
+        courseRepository.save(course);
     }
 }
