@@ -19,7 +19,7 @@ public class CourseController {
     private CourseService courseService;
 
     // Create
-    @PostMapping("/save")
+    @PostMapping("/create")
     public ResponseEntity<CourseResponseDTO> createCourse(@Valid @RequestBody CourseRequestDTO courseRequestDTO) {
         try {
             CourseResponseDTO createdCourse = courseService.createCourse(courseRequestDTO);

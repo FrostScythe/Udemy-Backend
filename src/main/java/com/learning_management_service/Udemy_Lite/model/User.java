@@ -1,17 +1,15 @@
 package com.learning_management_service.Udemy_Lite.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "user")
 public class User {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="id")
-    private int id;
+    private Long id;
 
     @Column(name="student_firstName",nullable = false)
     private String firstName;
@@ -28,11 +26,11 @@ public class User {
     @Column(name="mobile_no",nullable = false,unique = true)
     private String moblieNo;
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
